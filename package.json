@@ -3,6 +3,7 @@
     "@whiskeysockets/baileys": "^6.7.9",
     "axios": "^1.7.9",
     "cheerio": "^1.0.0",
+    "dotenv": "^16.4.7",
     "httpx": "^3.0.1",
     "inquirer": "^12.3.0",
     "node-schedule": "^2.1.1",
