@@ -1,0 +1,3 @@
+async function sendWelcomeMessage(sock: any, chatId: string, participant: string) {
+    const message = `👋 Olá @${participant.split('@')[0]}, seja muito bem-vindo(a) ao *Grupo de Desenvolvedores*! ✨ Aqui estão algumas dicas para começar: - Leia as regras na descrição do grupo. 📜 - Apresente-se para que possamos conhecê-lo(a) melhor. 😊 - Sinta-se à vontade para fazer perguntas e compartilhar conhecimento. 💡 Estamos felizes em tê-lo(a) conosco! 🚀 `;    await sock.sendMessage(chatId, { text: message, mentions: [participant] });
+}
