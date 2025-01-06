@@ -4,6 +4,7 @@
     "axios": "^1.7.9",
     "cheerio": "^1.0.0",
     "dotenv": "^16.4.7",
+    "express": "^4.21.2",
     "httpx": "^3.0.1",
     "inquirer": "^12.3.0",
     "node-schedule": "^2.1.1",
@@ -16,6 +17,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "devDependencies": {
+    "@types/express": "^5.0.0",
     "@types/node-schedule": "^2.1.7",
     "@types/qrcode-terminal": "^0.12.2",
     "@types/string-similarity": "^4.0.2",
