@@ -14,6 +14,7 @@ const PORT = process.env.PORT || 3000;
 async function start() {
     const sock = await connectToWhatsApp();
 
+
     sock.ev.on('connection.update', async (update) => {
         const { connection } = update;
         console.log('Conexão atualizada:', connection);
@@ -23,6 +24,7 @@ async function start() {
         await handleMessage(sock, m, TARGET_GROUP_ID);
     });
 
+    
     sock.ev.on('group-participants.update', async (update) => {
         const { id, participants, action } = update;
         
@@ -34,6 +36,8 @@ async function start() {
             }
         }
     });
+
+    
 }
 
 async function sendWelcomeMessage(sock: any, chatId: string, participant: string) {
