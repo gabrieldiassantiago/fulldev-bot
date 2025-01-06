@@ -1,0 +1,12 @@
+{
+    "builds": [
+      {
+        "src": "dist/server.js",
+        "use": "@vercel/node"
+      }
+    ],
+    "scripts": {
+      "start": "node dist/server.js"
+    }
+  }
+  
