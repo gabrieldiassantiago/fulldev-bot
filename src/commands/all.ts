@@ -3,14 +3,11 @@ import { WASocket, proto } from '@whiskeysockets/baileys';
 export async function all(sock: WASocket, chatId: string, conversation: string, groupMetadata: any, msg: proto.IWebMessageInfo) {
     const mentions = groupMetadata.participants.map((p: any) => p.id);
     
-    // Extrair o texto após o comando
     const args = conversation.split(' ').slice(1);
     let messageText = args.join(' ');
 
-    // Se não houver mensagem adicional, verificar se há uma mensagem citada
     if (!messageText) {
         if (msg.message?.extendedTextMessage?.contextInfo?.quotedMessage) {
-            // Encaminhar a mensagem citada com menções
             try {
                 await sock.sendMessage(chatId, {
                     forward: {

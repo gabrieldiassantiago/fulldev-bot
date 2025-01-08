@@ -1,3 +1,4 @@
+import express from 'express';
 import { getGroupIds } from './commands/getGroupIds';
 import { connectToWhatsApp } from './utils/authenticate';
 import { handleMessage } from './utils/handleMessage';
@@ -23,10 +24,10 @@ async function start() {
         await handleMessage(sock, m, TARGET_GROUP_ID);
     });
 
-    // **Novo Listener para atualizações de participantes do grupo**
+    // Listener para atualizações de participantes do grupo
     sock.ev.on('group-participants.update', async (update) => {
         const { id, participants, action } = update;
-        
+
         // Verifica se é o grupo alvo
         if (id === TARGET_GROUP_ID) {
             if (action === 'add') {
@@ -40,10 +41,20 @@ async function start() {
 }
 
 // Função para enviar mensagem de boas-vindas
-async function sendWelcomeMessage(sock: any, chatId: string, participant: string) {
+async function sendWelcomeMessage(sock: any, chatId:any, participant:any) {
     const message = `👋 Olá @${participant.split('@')[0]}, bem-vindo(a) ao grupo! Por favor, leia as regras na descrição e sinta-se à vontade para participar das discussões.`;
     await sock.sendMessage(chatId, { text: message, mentions: [participant] });
 }
 
-// Iniciar a conexão
-start();
+// Configurando o servidor Express
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+    res.send('Bot está rodando!');
+});
+
+app.listen(port, () => {
+    console.log(`Servidor está rodando na porta ${port}`);
+    start(); // Inicia a função de conexão ao WhatsApp
+});
