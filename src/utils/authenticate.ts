@@ -19,7 +19,7 @@ export async function connectToWhatsApp() {
                 console.log('Conexão fechada, tentando reconectar...');
                 setTimeout(() => {
                     connectToWhatsApp();
-                }, 5000); // Espera 5 segundos antes de tentar reconectar
+                }, 5000);
             } else {
                 console.log('Sessão encerrada. Por favor, reinicie a aplicação para gerar um novo QR Code.');
             }
@@ -28,7 +28,6 @@ export async function connectToWhatsApp() {
         }
     });
 
-    // Salvar as credenciais de autenticação
     sock.ev.on('creds.update', saveCreds);
 
     return sock;

@@ -16,32 +16,42 @@ export async function checkForGroupLink(sock: WASocket, chatId: string, msg: any
             // Obter metadados do grupo
             const groupMetadata = await sock.groupMetadata(chatId);
 
-            // Verificar se o bot é administrador
-            const botNumber = sock.user!.id.split(':')[0] + '@s.whatsapp.net';
-            const isBotAdmin = groupMetadata.participants.some((participant: any) => 
-                participant.id === botNumber && (participant.admin === 'admin' || participant.admin === 'superadmin')
+            // Verificar se o remetente é administrador
+            const isSenderAdmin = groupMetadata.participants.some((participant: any) => 
+                participant.id === senderId && (participant.admin === 'admin' || participant.admin === 'superadmin')
             );
 
-            if (!isBotAdmin) {
+            if (!isSenderAdmin) {
+                // Verificar se o bot é administrador
+                const botNumber = sock.user!.id.split(':')[0] + '@s.whatsapp.net';
+                const isBotAdmin = groupMetadata.participants.some((participant: any) => 
+                    participant.id === botNumber && (participant.admin === 'admin' || participant.admin === 'superadmin')
+                );
+
+                if (!isBotAdmin) {
+                    await sock.sendMessage(chatId, { 
+                        text: '⚠️ *Aviso:* Eu preciso ser administrador para alertar membros e apagar mensagens que compartilham links de outros grupos.' 
+                    });
+                    return true;
+                }
+
+                // Enviar mensagem de aviso com emojis
                 await sock.sendMessage(chatId, { 
-                    text: '⚠️ *Aviso:* Eu preciso ser administrador para alertar membros e apagar mensagens que compartilham links de outros grupos.' 
+                    text: `🚫 *Atenção @${senderId.split('@')[0]}!* 🚫\n\nPor favor, não compartilhe links de outros grupos aqui.`,
+                    mentions: [senderId] 
                 });
-                return true;
+
+                // Apagar a mensagem do remetente
+                await sock.sendMessage(chatId, { delete: messageKey });
+            } else {
+                // Se o remetente for administrador, permite o envio do link
+                return false;
             }
 
-            // Enviar mensagem de aviso com emojis
-            await sock.sendMessage(chatId, { 
-                text: `🚫 *Atenção @${senderId.split('@')[0]}!* 🚫\n\nPor favor, não compartilhe links de outros grupos aqui. Sua mensagem foi removida.`, 
-                mentions: [senderId] 
-            });
-
-            // Apagar a mensagem do remetente
-            await sock.sendMessage(chatId, { delete: messageKey });
-
         } catch (error) {
-            console.error('Erro ao enviar mensagem de aviso ou apagar mensagem:', error);
+            console.error('Erro ao processar o link de grupo:', error);
             await sock.sendMessage(chatId, { 
-                text: '❌ Ocorreu um erro ao tentar enviar a mensagem de aviso ou apagar a mensagem.' 
+                text: '❌ Ocorreu um erro ao processar o link de grupo.' 
             });
         }
         return true; // Retorna true para indicar que o link foi tratado

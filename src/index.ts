@@ -1,56 +1,49 @@
-import dotenv from 'dotenv';
-import express from 'express';  // Importar express para criar um servidor HTTP
 import { getGroupIds } from './commands/getGroupIds';
 import { connectToWhatsApp } from './utils/authenticate';
 import { handleMessage } from './utils/handleMessage';
 
-dotenv.config();
-
-const TARGET_GROUP_ID = process.env.TARGET_GROUP_ID || '120363368359389841@g.us';
-
-const app = express();
-const PORT = process.env.PORT || 3000;
+const TARGET_GROUP_ID = '120363306015581649@g.us'; // Defina o ID do seu grupo aqui
 
 async function start() {
     const sock = await connectToWhatsApp();
 
+    // Adicionar um atraso de 2 segundos após a conexão
+    setTimeout(async () => {
+        await getGroupIds(sock);
+    }, 2000);
 
+    // Listener para reconexão
     sock.ev.on('connection.update', async (update) => {
         const { connection } = update;
         console.log('Conexão atualizada:', connection);
     });
 
+    // Listener para mensagens recebidas
     sock.ev.on('messages.upsert', async (m) => {
         await handleMessage(sock, m, TARGET_GROUP_ID);
     });
 
-    
+    // **Novo Listener para atualizações de participantes do grupo**
     sock.ev.on('group-participants.update', async (update) => {
         const { id, participants, action } = update;
         
+        // Verifica se é o grupo alvo
         if (id === TARGET_GROUP_ID) {
             if (action === 'add') {
+                // Envia mensagem de boas-vindas para cada novo participante
                 for (const participant of participants) {
                     await sendWelcomeMessage(sock, TARGET_GROUP_ID, participant);
                 }
             }
         }
     });
-
-    
 }
 
+// Função para enviar mensagem de boas-vindas
 async function sendWelcomeMessage(sock: any, chatId: string, participant: string) {
-    const message = `👋 Olá @${participant.split('@')[0]}, seja muito bem-vindo(a) ao *Grupo de Desenvolvedores*! ✨ Aqui estão algumas dicas para começar: - Leia as regras na descrição do grupo. 📜 - Apresente-se para que possamos conhecê-lo(a) melhor. 😊 - Sinta-se à vontade para fazer perguntas e compartilhar conhecimento. 💡 Estamos felizes em tê-lo(a) conosco! 🚀 `;
+    const message = `👋 Olá @${participant.split('@')[0]}, bem-vindo(a) ao grupo! Por favor, leia as regras na descrição e sinta-se à vontade para participar das discussões.`;
     await sock.sendMessage(chatId, { text: message, mentions: [participant] });
 }
 
-// Adicionar uma rota simples para escutar em uma porta e manter o servidor ativo
-app.get('/', (req, res) => {
-    res.send('Servidor rodando');
-});
-
-app.listen(PORT, () => {
-    console.log(`Servidor escutando na porta ${PORT}`);
-    start();
-});
+// Iniciar a conexão
+start();

@@ -10,10 +10,20 @@ let quizAtual: {
     respondida: boolean;
 } | null = null;
 
-
 const pontuacoes: { [key: string]: number } = {};
 
-export async function quizDiario(sock: WASocket, chatId: string) {
+export async function quizDiario(sock: WASocket, chatId: string, senderId: string) {
+    // Verificar se o remetente é administrador
+    const groupMetadata = await sock.groupMetadata(chatId);
+    const isAdmin = groupMetadata.participants.some((participant: any) => 
+        participant.id === senderId && (participant.admin === 'admin' || participant.admin === 'superadmin')
+    );
+
+    if (!isAdmin) {
+        await sock.sendMessage(chatId, { text: 'Você precisa ser um administrador para iniciar um quiz.' });
+        return;
+    }
+
     if (quizAtual && quizAtual.chatId === chatId && !quizAtual.respondida) {
         await sock.sendMessage(chatId, { text: 'Um quiz já está em andamento! Por favor, responda à pergunta atual.' });
         return;
@@ -26,7 +36,6 @@ export async function quizDiario(sock: WASocket, chatId: string) {
                 amount: 1,
                 type: 'multiple',
                 category: 18, // Categoria 18 é "Ciência da Computação"
-                // difficulty: 'easy', // Você pode especificar a dificuldade se quiser
                 difficulty: 'hard'
             },
         });

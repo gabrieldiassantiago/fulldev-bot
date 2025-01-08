@@ -2,11 +2,13 @@ import { WASocket } from '@whiskeysockets/baileys';
 import { all } from '../commands/all';
 import { add } from '../commands/add';
 import { dell } from '../commands/ban';
-import { makeadmin, removeadmin } from '../commands/makeadmin';
+import { makeadmin, removeadmin } from '../commands/admin';
 import { setReminder } from '../commands/lembrete';
 import { checkForGroupLink } from '../commands/checkGroup';
 import { vagas } from '../commands/vagas';
 import { endQuiz, handleQuizAnswer, quizDiario } from '../commands/game';
+import { sendCommunityRules } from '../commands/showHelp';
+import { lockChat, unlockChat } from '../commands/lockGroup';
 
 export async function handleMessage(sock: WASocket, m: any, TARGET_GROUP_ID: string) {
     const msg = m.messages[0];
@@ -28,15 +30,19 @@ export async function handleMessage(sock: WASocket, m: any, TARGET_GROUP_ID: str
 
     // Verifica se a mensagem contém um comando válido
     if (
-        conversation.startsWith('/all') ||
+        conversation.startsWith('/help') ||
+        conversation.startsWith('/rules') ||
+        conversation.startsWith('/cuuuuuuuuuu') ||
         conversation.startsWith('/ban') ||
         conversation.startsWith('/add') ||
-        conversation.startsWith('/makeadmin') ||
+        conversation.startsWith('/admin') ||
         conversation.startsWith('/removeadmin') ||
         conversation.startsWith('/vagas') ||
         conversation.startsWith('/lembrete') ||
         conversation.startsWith('/quiz') ||
-        conversation.startsWith('/exit')
+        conversation.startsWith('/lock') ||
+        conversation.startsWith('/unlock') ||
+        conversation.startsWith('teste')  // Novo comando de teste
     ) {
         try {
             const groupMetadata = await sock.groupMetadata(chatId);
@@ -48,18 +54,20 @@ export async function handleMessage(sock: WASocket, m: any, TARGET_GROUP_ID: str
             console.log('ID do remetente:', senderId); 
             console.log('Participantes do grupo:', groupMetadata.participants); 
 
-            if (!isAdmin && !conversation.startsWith('/quiz') && !conversation.startsWith('/exit')) {
+            if (!isAdmin && !conversation.startsWith('/quiz') && !conversation.startsWith('/exit') && !conversation.startsWith('/help') && !conversation.startsWith('/rules')) {
                 await sock.sendMessage(chatId, { text: 'Você precisa ser um administrador para usar este comando.' });
                 return;
             }
 
-            if (conversation.startsWith('/all')) {
-                await all(sock, chatId, conversation, groupMetadata);
+            if (conversation.startsWith('/help')) {
+                await sendCommunityRules(sock, chatId);
+            } else if (conversation.startsWith('/cuuuuuuuuuu')) {
+                await all(sock, chatId, conversation, groupMetadata, msg);
             } else if (conversation.startsWith('/ban')) {
-                await dell(sock, chatId, conversation);
+                await dell(sock, chatId, msg, conversation); // Passando 'msg' como terceiro argumento
             } else if (conversation.startsWith('/add')) {
                 await add(sock, chatId, conversation);
-            } else if (conversation.startsWith('/makeadmin')) {
+            } else if (conversation.startsWith('/admin')) {
                 await makeadmin(sock, chatId, conversation);
             } else if (conversation.startsWith('/removeadmin')) {
                 await removeadmin(sock, chatId, conversation);
@@ -68,9 +76,16 @@ export async function handleMessage(sock: WASocket, m: any, TARGET_GROUP_ID: str
             } else if (conversation.startsWith('/vagas')) {
                 await vagas(sock, chatId, conversation);
             } else if (conversation.startsWith('/quiz')) {
-                await quizDiario(sock, chatId);
+                await quizDiario(sock, chatId, senderId); // Adicionando 'senderId' para verificar se é admin
             } else if (conversation.startsWith('/exit')) {
                 await endQuiz(sock, chatId);
+            } else if (conversation.startsWith('/lock')) {
+                await lockChat(sock, chatId, senderId)
+            } else if (conversation.startsWith('/unlock')) {
+                await unlockChat(sock, chatId, senderId)
+            } else if (conversation.startsWith('kkkk')) {  // Novo comando de teste
+                await sock.sendMessage(chatId, { text: '' });
+                console.log('Informações do grupo:', groupMetadata);
             }
         } catch (error) {
             console.error('Erro ao processar o comando:', error);
